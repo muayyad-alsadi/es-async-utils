@@ -1,0 +1,21 @@
+{
+  "name": "@alsadi/async_utils",
+  "description": "Miscellaneous Asynchronous Generators Utilities for ECMAScript NodeJs",
+  "version": "0.0.1",
+  "private": false,
+  "author": "alsadi@gmail.com",
+  "license": "Apache-2.0",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/muayyad-alsadi/es-async-utils.git"
+  },
+  "keywords": [
+    "async",
+    "ipc"
+  ],
+  "bugs": {
+    "url": "https://github.com/muayyad-alsadi/es-async-utils/issues"
+  },
+  "homepage": "https://github.com/muayyad-alsadi/es-async-utils#readme"
+}
