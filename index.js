@@ -84,4 +84,102 @@ export async function* bulks(size, gen, filter_cb, map_cb) {
     }
 }
 
+/**
+ * SemaphorePromise class
+ * @typedef {Object} SemaphorePromise
+ */
+export class SemaphorePromise {
+    /**
+     * @constructor
+     * @param {number} n
+     */
+    constructor(n) {
+        this.n = n;
+        this.wait_promise = null;
+        this.wait_promise_cb = null;
+    }
+
+    async acquire() {
+        const self = this;
+        while (self.n==0) {
+            if (!self.wait_promise) {
+                self.wait_promise = new Promise(function(resolve) {
+                    self.wait_promise_cb = resolve;
+                });
+            }
+            // console.log("waiting ...");
+            await self.wait_promise;
+            // console.log("waiting ... done");
+        }
+        --(self.n);
+        return self.n;
+    }
+
+    release() {
+        ++(this.n);
+        const wait_cb = this.wait_promise_cb;
+        this.wait_promise_cb = null;
+        this.wait_promise = null;
+        if (wait_cb) wait_cb();
+    }
+
+    /**
+     * 
+     * @param {*} get_promise a function that returns a promise to be wrapped
+     * @returns the wrapped promise
+     */
+    with(get_promise) {
+        const self = this;
+        return self.acquire().then(()=>get_promise()).finally(()=>self.release())
+    }
+
+}
+
+
+/**
+ * AsyncEvent class
+ * @typedef {Object} AsyncEvent
+ */
+export class AsyncEvent {
+    /**
+     * @constructor
+     * @param {number} n
+     */
+    constructor(n) {
+        this._is_set = false;
+        this._wait_promise_cbs = [];
+    }
+
+    clear() {
+        if (!this._is_set) return; // already clear
+        if (this._is_set && this._wait_promise_cbs.length) {
+            throw new Error("clearning a dirty event with pending waits");
+        }
+        this._is_set = false;
+    }
+
+    set() {
+        if (this._is_set) {
+            throw new Error("already set, try clear first");
+        }
+        this._is_set = true;
+        if (this._wait_promise_cbs.length==0) return;
+        let cb=this._wait_promise_cbs.pop();
+        while(cb) {
+            cb();
+            cb=this._wait_promise_cbs.pop();
+        }
+    }
+
+    wait() {
+        if (this._is_set) return;
+        const self = this;
+        const promise = new Promise(function(resolve) {
+            self._wait_promise_cbs.push(resolve);
+        });
+        return promise;
+    }
+
+}
+
 
