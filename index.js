@@ -35,12 +35,12 @@ export async function* chain_generators(generators) {
         try {
             await promise;
             while (items.length) {
-                yield items.pop();
+                yield items.shift();
             }
         } catch (e) {
             more = false;
             while (items.length) {
-                yield items.pop();
+                yield items.shift();
             }
             throw e;
         }
@@ -85,10 +85,10 @@ export async function* bulks(size, gen, filter_cb, map_cb) {
 }
 
 /**
- * SemaphorePromise class
- * @typedef {Object} SemaphorePromise
+ * AsyncSemaphore class
+ * @typedef {Object} AsyncSemaphore
  */
-export class SemaphorePromise {
+export class AsyncSemaphore {
     /**
      * @constructor
      * @param {number} n
@@ -143,9 +143,8 @@ export class SemaphorePromise {
 export class AsyncEvent {
     /**
      * @constructor
-     * @param {number} n
      */
-    constructor(n) {
+    constructor() {
         this._is_set = false;
         this._wait_promise_cbs = [];
     }
@@ -158,16 +157,16 @@ export class AsyncEvent {
         this._is_set = false;
     }
 
-    set() {
-        if (this._is_set) {
+    set(assert_not_set=false) {
+        if (assert_not_set && this._is_set) {
             throw new Error("already set, try clear first");
         }
         this._is_set = true;
         if (this._wait_promise_cbs.length==0) return;
-        let cb=this._wait_promise_cbs.pop();
+        let cb=this._wait_promise_cbs.shift();
         while(cb) {
             cb();
-            cb=this._wait_promise_cbs.pop();
+            cb=this._wait_promise_cbs.shift();
         }
     }
 
@@ -183,3 +182,56 @@ export class AsyncEvent {
 }
 
 
+/**
+ * AsyncChannel class can be used to implement queues of producers and consumers
+ * @typedef {Object} AsyncChannel
+ */
+export class AsyncChannel {
+    /**
+     * @constructor
+     * @param {number} queue_size
+     */
+    constructor(queue_size=-1) {
+        this.drain = false;
+        this._queue = [];
+        this._queue_size = queue_size;
+        this._sem = null;
+        this._event = new AsyncEvent();
+        if(queue_size>0) {
+            this._sem = new AsyncSemaphore(queue_size);
+        }
+    }
+    async push(item) {
+        if (this._sem) {
+            // console.log("sem n:", this._sem.n);
+            await this._sem.acquire();
+            // console.log("sem n:", this._sem.n);
+        }
+        this._queue.push(item);
+        this._event.set();
+    }
+
+    async consume() {
+        // console.log("waiting: ...");
+        while(this._queue.length==0) {
+                // console.log(`waiting: ${this._queue.length}`);
+                this._event.clear();
+                await this._event.wait();
+                // console.log(`waiting: ${this._queue.length} done inside`);
+        }
+        // console.log(`waiting: ${this._queue.length}: while done`);
+        const item = this._queue.shift();
+        if (this._sem) {
+            // console.log("sem n:", this._sem.n);
+            this._sem.release();
+        }
+        return item;
+    }
+
+    async *consume_items() {
+        while(!this.drain || this._queue.length>0) {
+            const item = await this.consume();
+            yield item;
+        }
+    }
+}
