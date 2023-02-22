@@ -4,9 +4,9 @@
 * `sleep` - await the returned promise to sleep the given time
 * `chain_generators` - chain an array of async generators as they are produced
 * `bulks` - collect items from the given async generator into chunks of given size
-* `AsyncSemaphore` - resource-limiting lock
-* `AsyncEvent` - 
-* `AsyncChannel` - 
+* `AsyncSemaphore` - resource-limiting lock used like this `sem.with(async function(){do_expensive_work_here();})`
+* `AsyncEvent` - use `await event.wait()` which will return when `event.set()`
+* `AsyncChannel` - a queue of optionally given size that have producers (`await ch.push(item)`) and cosumers (`item=await ch.consume()`)
 
 You can use it with [@alsadi/semaphore](https://www.npmjs.com/package/@alsadi/semaphore)
 
@@ -112,4 +112,67 @@ async function *mygen() {
 This implementation only uses an integer counter and a Promise with a callback
 Other than that it's zero cost. It does not have busy loops or arbtrary sleeps.
 The size of the semaphore does not affect its cost.
+
+
+## AsyncEvent
+
+```javascript
+async function main() {
+    const event = new AsyncEvent();
+    // somewhere event will be set
+    sleep(5000).then(()=>event.set());
+    await event.wait();
+}
+```
+
+## AsyncChannel - a queue of optionally given size that have producers and cosumers
+
+You can pass an optional queue size, otherwise queue will be unlimited.
+
+
+```javascript
+const queue_size=7;
+const ch = new AsyncChannel(queue_size);
+```
+
+when you push to the queue you must use await because if queue size limit, push will sleep until consumers do their work
+
+```javascript
+async function producer(name) {
+    for(let i=0;i<10;++i) {
+        await ch.push(`${name}-${i}`);
+    }
+}
+p=[]
+p.push(producer("my-producer1"));
+p.push(producer("my-producer2"));
+await Promise.all(p);
+```
+
+items in queue are consumed like this
+
+
+```javascript
+while(true) {
+    const item = await ch.consume();
+    await do_something(item);
+}
+```
+
+you can use async generators like this
+
+```javascript
+async my_consumer() {
+    for await (const item of ch.consume_items()) {
+        await do_something(item);
+    }
+}
+c=[]
+c.push(my_consumer());
+c.push(my_consumer());
+c.push(my_consumer());
+await Promise.all(c);
+```
+
+you can run multiple consumers and producers
 
