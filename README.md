@@ -22,6 +22,21 @@ and in your code
 import {sleep, chain_generators, bulks} from '@alsadi/async_utils'
 ```
 
+## Sleep
+
+```javascript
+import {sleep} from '@alsadi/async_utils';
+async function main() {
+    const p = sleep(5000).then(()=>console.log("this will appear after 5 seconds"));
+    console.log("sleeping for 2 seconds: started ...");
+    await sleep(2000);
+    console.log("sleeping for 2 seconds: started done");
+    console.log("3 seconds remaining: ...");
+    await p;
+}
+main();
+```
+
 ## Chaining async generators (possibly infinite)
 
 If you have two infinite async generators `gen1` and `gen2` that produce items
