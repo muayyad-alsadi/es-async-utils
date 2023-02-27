@@ -5,7 +5,7 @@
   "private": false,
   "author": "alsadi@gmail.com",
   "license": "Apache-2.0",
-  "main": "index.js"
+  "main": "index.js",
   "type": "module",
   "repository": {
     "type": "git",
