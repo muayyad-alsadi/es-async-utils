@@ -1,10 +1,11 @@
 {
   "name": "@alsadi/async_utils",
   "description": "Miscellaneous Asynchronous Generators Utilities for ECMAScript NodeJs",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "private": false,
   "author": "alsadi@gmail.com",
   "license": "Apache-2.0",
+  "main": "index.js"
   "type": "module",
   "repository": {
     "type": "git",
