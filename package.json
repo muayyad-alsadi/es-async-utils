@@ -18,5 +18,6 @@
   "bugs": {
     "url": "https://github.com/muayyad-alsadi/es-async-utils/issues"
   },
-  "homepage": "https://github.com/muayyad-alsadi/es-async-utils#readme"
+  "homepage": "https://github.com/muayyad-alsadi/es-async-utils#readme",
+  "dependencies": {}
 }

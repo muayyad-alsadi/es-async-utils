@@ -2,13 +2,16 @@
 
 
 * `sleep` - await the returned promise to sleep the given time
-* `chain_generators` - chain an array of async generators as they are produced
+* `chain_generators` - collect items from multiple async generators from which ever comes first
 * `bulks` - collect items from the given async generator into chunks of given size
+* `generatorFromEvents` - convert emmited events to async generator
 * `AsyncSemaphore` - resource-limiting lock used like this `sem.with(async function(){do_expensive_work_here();})`
+* `AsyncLock` - behaves like normal thread lock implemented using AsyncSemaphore with special case of `n=1`
 * `AsyncEvent` - use `await event.wait()` which will return when `event.set()`
+* `AsyncEventAlt` - same as `AsyncEvent` implemented using [EventEmitter](https://nodejs.org/docs/latest-v14.x/api/events.html#events_class_eventemitter)
 * `AsyncChannel` - a queue of optionally given size that have producers (`await ch.push(item)`) and cosumers (`item=await ch.consume()`)
 
-You can use it with [@alsadi/semaphore](https://www.npmjs.com/package/@alsadi/semaphore)
+
 
 ## Usage
 
@@ -55,6 +58,17 @@ for await (const item of chain_generators([gen1, gen2])) {
 for await (const chunk of bulks(3, gen3)) {
     console.log(chunk);
 }
+```
+
+## generatorFromEvents
+
+Node's built-in [http server](https://nodejs.org/api/http.html#httpcreateserveroptions-requestlistener) have events like [data](https://nodejs.org/api/net.html#event-data) on `request`
+
+```javascript
+    const gen = generatorFromEvents(request, ["data"], ["end"], ["error"]);
+    for await (const [name, [chunk]] of gen) {
+        console.log(name, chunk.length);
+    }
 ```
 
 ## AsyncSemaphore - resource-limiting lock
@@ -128,6 +142,22 @@ This implementation only uses an integer counter and a Promise with a callback
 Other than that it's zero cost. It does not have busy loops or arbtrary sleeps.
 The size of the semaphore does not affect its cost.
 
+
+## AsyncLock - classical lock behavior
+
+```javascript
+import {sleep, AsyncLock} from "./index.js"
+
+const lock = new AsyncLock();
+
+async function main() {
+    const result=await lock.with(my_async_function);
+    const result=await lock.with(()=>do_something()); // do_something() returns a promise
+    const result=await lock.with(async function(){
+        await do_something();
+    });
+}
+```
 
 ## AsyncEvent
 

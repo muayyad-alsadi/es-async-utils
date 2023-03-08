@@ -1,3 +1,5 @@
+import {EventEmitter} from "events";
+
 /**
  * chain an array of async generators as they are produced
  * @param {Array} generators
@@ -135,6 +137,19 @@ export class AsyncSemaphore {
 
 }
 
+/**
+ * AsyncLock class
+ * @typedef {Object} AsyncLock
+ */
+export class AsyncLock extends AsyncSemaphore {
+    /**
+     * @constructor
+     */
+    constructor() {
+        super(1);
+    }
+}
+
 
 /**
  * AsyncEvent class
@@ -181,6 +196,49 @@ export class AsyncEvent {
 
 }
 
+/**
+ * AsyncEventAlt class - an alternative implementation
+ * @typedef {Object} AsyncEventAlt
+ */
+export class AsyncEventAlt {
+    /**
+     * @constructor
+     */
+    constructor() {
+        this._is_set = false;
+        this._wait_promise_cbs = [];
+        this._ee = new EventEmitter();
+        this._ee.setMaxListeners(0);
+    }
+
+    clear() {
+        if (!this._is_set) return; // already clear
+        if (this._is_set && this._wait_promise_cbs.length) {
+            throw new Error("clearning a dirty event with pending waits");
+        }
+        this._is_set = false;
+    }
+
+    set(assert_not_set=false) {
+        if (assert_not_set && this._is_set) {
+            throw new Error("already set, try clear first");
+        }
+        this._is_set = true;
+        this._ee.emit("set")
+    }
+
+    wait() {
+        if (this._is_set) return;
+        const self = this;
+        const promise = new Promise(function(resolve) {
+            self._ee.on("set", function() {
+                resolve();
+            });
+        });
+        return promise;
+    }
+
+}
 
 /**
  * AsyncChannel class can be used to implement queues of producers and consumers
@@ -236,3 +294,79 @@ export class AsyncChannel {
     }
 }
 
+/**
+ * 
+ */
+
+
+
+/**
+ * convert events comming from an emitter into into async generator
+ * 
+ * used like this
+ * for await ([event_name, item_args] of generatorFromEvents(ev, ['event1'], ['close'], ['error']) {}
+ * 
+ * @param {EventEmitter} emitter 
+ * @param {Array<string>} itemEvents 
+ * @param {Array<string} exitEvents 
+ * @param {Array<string} errorEvents 
+ * @param {boolean} includeExitItem
+ */
+export async function *generatorFromEvents(emitter, itemEvents, exitEvents=null, errorEvents=null, includeExitItem=false) {
+    const items = [];
+    let item_resolve;
+    let item_promise=new Promise((resolve)=>item_resolve=resolve);
+    let exit_resolve;
+    const exit_promise=new Promise((resolve)=>exit_resolve=resolve);
+    let error_resolve;
+    const error_promise=new Promise((resolve)=>error_resolve=resolve);
+    function cb_item(arg) {
+        items.push(arg);
+        item_resolve(arg);
+        item_promise.done=true;
+        item_promise=new Promise((resolve)=>item_resolve=resolve);
+    }
+    function cb_exit(arg) {
+        exit_resolve(arg);
+        exit_promise.done=true;
+    }
+    function cb_error(arg) {
+        error_resolve(arg);
+        error_promise.done=true;
+    }
+    for(const name of itemEvents) {
+        emitter.on(name, (...args)=>cb_item([name, args]));
+    }
+    for(const name of exitEvents) {
+        emitter.on(name, (...args)=>cb_exit([name, args]));
+    }
+    for(const name of errorEvents) {
+        emitter.on(name, (...args)=>cb_error([name, args]));
+    }
+    let has_more = true;
+    while(has_more) {
+        await Promise.race([item_promise, exit_promise, error_promise]);
+        while(items.length) {
+            yield items.shift();
+        }
+        if (error_promise.done) {
+            const [name, args] = await error_promise;
+            has_more = false;
+            if (args && args.length && args.length>=1 && args[0] instanceof Error) {
+                const error=args[0];
+                error.event_name = name;
+                throw error;
+            }
+            const error = new Error("error event");
+            error.event_name = name;
+            error.event_args = args;
+            throw error;
+        }
+        if (exit_promise.done) {
+            const item = await exit_promise;
+            has_more = false;
+            if (includeExitItem) yield item;
+            break;
+        }
+    }
+}
