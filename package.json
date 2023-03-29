@@ -1,7 +1,7 @@
 {
     "name": "@alsadi/async_utils",
     "description": "Miscellaneous Asynchronous Generators Utilities for ECMAScript NodeJs",
-    "version": "0.0.8",
+    "version": "0.2.1",
     "private": false,
     "author": "alsadi@gmail.com",
     "license": "Apache-2.0",
@@ -28,6 +28,7 @@
     "devDependencies": {
         "eslint": "^8.37.0",
         "eslint-config-prettier": "^8.8.0",
+        "eslint-config-standard": "^17.0.0",
         "eslint-plugin-import": "^2.27.5",
         "eslint-plugin-jsdoc": "^40.1.0",
         "eslint-plugin-promise": "^6.1.1",

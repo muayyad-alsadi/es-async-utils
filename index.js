@@ -111,7 +111,7 @@ export class AsyncSemaphore {
 
     async acquire() {
         const self = this;
-        while (self._n == 0) {
+        while (self._n === 0) {
             if (!self._wait_promise) {
                 self._wait_promise = new Promise(function (resolve) {
                     self._wait_promise_cb = resolve;
@@ -185,7 +185,7 @@ export class AsyncEvent {
             throw new Error("already set, try clear first");
         }
         this._is_set = true;
-        if (this._wait_promise_cbs.length == 0) return;
+        if (this._wait_promise_cbs.length === 0) return;
         let cb = this._wait_promise_cbs.shift();
         while (cb) {
             cb();
@@ -265,6 +265,7 @@ export class AsyncChannel {
             this._sem = new AsyncSemaphore(queue_size);
         }
     }
+
     async push(item) {
         if (this._sem) {
             // console.log("sem n:", this._sem.n);
@@ -277,7 +278,7 @@ export class AsyncChannel {
 
     async consume() {
         // console.log("waiting: ...");
-        while (this._queue.length == 0) {
+        while (this._queue.length === 0) {
             // console.log(`waiting: ${this._queue.length}`);
             this._event.clear();
             await this._event.wait();
@@ -329,7 +330,7 @@ export async function* generatorFromEvents(
 
     /**
      * internal function
-     * 
+     *
      * @param {*} arg - item
      */
     function cb_item(arg) {
@@ -340,7 +341,7 @@ export async function* generatorFromEvents(
     }
     /**
      * internal function
-     * 
+     *
      * @param {*} arg - item
      */
     function cb_exit(arg) {
@@ -349,7 +350,7 @@ export async function* generatorFromEvents(
     }
     /**
      * internal function
-     * 
+     *
      * @param {*} arg - item
      */
     function cb_error(arg) {

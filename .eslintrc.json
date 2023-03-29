@@ -18,9 +18,11 @@
         "plugin:jsdoc/recommended",
         "plugin:promise/recommended",
         "plugin:security/recommended",
+        "standard",
         "prettier"
     ],
     "rules": {
+        "camelcase": ["off"],
         "indent": ["warn", 4],
         "no-unused-vars": ["warn"],
         "no-extra-semi": ["warn"],
