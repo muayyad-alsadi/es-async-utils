@@ -1,23 +1,38 @@
 {
-  "name": "@alsadi/async_utils",
-  "description": "Miscellaneous Asynchronous Generators Utilities for ECMAScript NodeJs",
-  "version": "0.0.8",
-  "private": false,
-  "author": "alsadi@gmail.com",
-  "license": "Apache-2.0",
-  "main": "index.js",
-  "type": "module",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/muayyad-alsadi/es-async-utils.git"
-  },
-  "keywords": [
-    "async",
-    "ipc"
-  ],
-  "bugs": {
-    "url": "https://github.com/muayyad-alsadi/es-async-utils/issues"
-  },
-  "homepage": "https://github.com/muayyad-alsadi/es-async-utils#readme",
-  "dependencies": {}
+    "name": "@alsadi/async_utils",
+    "description": "Miscellaneous Asynchronous Generators Utilities for ECMAScript NodeJs",
+    "version": "0.0.8",
+    "private": false,
+    "author": "alsadi@gmail.com",
+    "license": "Apache-2.0",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "types": "tsc index.js --declaration --allowJs --emitDeclarationOnly --outFile index.d.ts",
+        "lint": "eslint -c .eslintrc.json index.js",
+        "lintfix": "eslint -c .eslintrc.json --fix index.js",
+        "prettier": "prettier -w ."
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/muayyad-alsadi/es-async-utils.git"
+    },
+    "keywords": [
+        "async",
+        "ipc"
+    ],
+    "bugs": {
+        "url": "https://github.com/muayyad-alsadi/es-async-utils/issues"
+    },
+    "homepage": "https://github.com/muayyad-alsadi/es-async-utils#readme",
+    "devDependencies": {
+        "eslint": "^8.37.0",
+        "eslint-config-prettier": "^8.8.0",
+        "eslint-plugin-import": "^2.27.5",
+        "eslint-plugin-jsdoc": "^40.1.0",
+        "eslint-plugin-promise": "^6.1.1",
+        "eslint-plugin-security": "^1.7.1",
+        "prettier": "^2.8.7",
+        "typescript": "^5.0.2"
+    }
 }
