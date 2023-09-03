@@ -19,7 +19,7 @@
 ## Usage
 
 ```
-npm insatall '@alsadi/async_utils'
+npm install --save '@alsadi/async_utils'
 ```
 
 and in your code
