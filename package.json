@@ -1,14 +1,15 @@
 {
     "name": "@alsadi/async_utils",
     "description": "Miscellaneous Asynchronous Generators Utilities for ECMAScript NodeJs",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "private": false,
     "author": "alsadi@gmail.com",
     "license": "Apache-2.0",
     "main": "index.js",
     "type": "module",
+    "types": "./index.d.ts",
     "scripts": {
-        "types": "tsc index.js --declaration --allowJs --emitDeclarationOnly --outFile index.d.ts",
+        "types": "tsc index.js --declaration --allowJs --emitDeclarationOnly --outDir .",
         "lint": "eslint -c .eslintrc.json index.js",
         "lintfix": "eslint -c .eslintrc.json --fix index.js",
         "prettier": "prettier -w ."
